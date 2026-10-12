@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MGC Jewel Calculator</title>
+<meta name="description" content="Payment plan calculator for MGC Jewel Tower 1 and Tower 2.">
+<meta name="theme-color" content="#0b3b34">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jewel Calc">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <img class="brand-logo" src="icons/icon-192.png" alt="" width="36" height="36">
+      <div>
+        <div class="brand-name">MGC Jewel</div>
+        <div class="brand-sub">Payment plan calculator</div>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="btn ghost" id="installBtn" hidden>Install app</button>
+      <button type="button" class="btn ghost" id="settingsBtn">Settings</button>
+    </div>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ INPUTS ============ -->
+  <form class="inputs" id="form" autocomplete="off" novalidate>
+
+    <section class="panel">
+      <h2>Unit</h2>
+
+      <div class="seg" role="radiogroup" aria-label="Tower" id="towerSeg">
+        <button type="button" role="radio" data-tower="1" aria-checked="true">Tower 1</button>
+        <button type="button" role="radio" data-tower="2" aria-checked="false">Tower 2</button>
+      </div>
+      <p class="plan-line" id="planLine"></p>
+
+      <div class="seg" role="radiogroup" aria-label="Unit type" id="typeSeg">
+        <button type="button" role="radio" data-type="Apartment" aria-checked="true">Apartment</button>
+        <button type="button" role="radio" data-type="Shop" aria-checked="false">Shop</button>
+      </div>
+
+      <div class="grid2">
+        <label class="field">
+          <span>Floor</span>
+          <input id="floor" type="text" inputmode="text" list="floorList" placeholder="e.g. 5">
+          <datalist id="floorList"></datalist>
+        </label>
+        <label class="field">
+          <span>Unit no.</span>
+          <input id="unitId" type="text" inputmode="text" placeholder="e.g. 512">
+        </label>
+      </div>
+      <label class="field">
+        <span>Location note <em>(optional, replaces floor and unit in the result)</em></span>
+        <input id="locNote" type="text" placeholder="e.g. Corner unit, road facing">
+      </label>
+
+      <div class="grid2">
+        <label class="field">
+          <span>Size (sq ft)</span>
+          <input id="size" type="text" inputmode="decimal" data-fmt="dec" placeholder="0">
+        </label>
+        <label class="field">
+          <span>Rate per sq ft (PKR)</span>
+          <input id="rate" type="text" inputmode="decimal" data-fmt="dec" placeholder="0">
+        </label>
+      </div>
+      <p class="hint" id="rateHint" hidden></p>
+    </section>
+
+    <section class="panel">
+      <h2>Discount</h2>
+      <label class="switch"><input type="checkbox" id="discOn"><span>Apply a discount</span></label>
+      <div class="sub" id="discBox" hidden>
+        <div class="seg small" role="radiogroup" aria-label="Discount type" id="discSeg">
+          <button type="button" role="radio" data-v="percent" aria-checked="true">Percent</button>
+          <button type="button" role="radio" data-v="fixed" aria-checked="false">PKR amount</button>
+        </div>
+        <label class="field">
+          <span id="discLabel">Discount (%)</span>
+          <input id="discVal" type="text" inputmode="decimal" data-fmt="dec" placeholder="0">
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Down payment</h2>
+      <label class="switch"><input type="checkbox" id="downOn"><span>Add a down payment</span></label>
+      <div class="sub" id="downBox" hidden>
+        <div class="seg small" role="radiogroup" aria-label="Down payment type" id="downSeg">
+          <button type="button" role="radio" data-v="percent" aria-checked="true">Percent</button>
+          <button type="button" role="radio" data-v="fixed" aria-checked="false">PKR amount</button>
+        </div>
+        <label class="field">
+          <span id="downLabel">Down payment (% of final price)</span>
+          <input id="downVal" type="text" inputmode="decimal" data-fmt="dec" placeholder="0">
+        </label>
+        <p class="hint">Counted inside the amount payable before possession. It is not added on top of the plan.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Monthly installment</h2>
+      <div class="seg" role="radiogroup" aria-label="Installment method" id="instSeg">
+        <button type="button" role="radio" data-v="percent" aria-checked="true" id="instPctBtn">1% plan</button>
+        <button type="button" role="radio" data-v="manual" aria-checked="false">Manual amount</button>
+      </div>
+
+      <div id="instPctBox">
+        <p class="calc-line">Standard installment: <strong id="instStd">PKR 0</strong></p>
+        <label class="field">
+          <span>Override amount <em>(optional)</em></span>
+          <input id="instOverride" type="text" inputmode="decimal" data-fmt="dec" placeholder="Leave empty to use the standard amount">
+        </label>
+      </div>
+      <div id="instManualBox" hidden>
+        <label class="field">
+          <span>Monthly installment (PKR)</span>
+          <input id="instManual" type="text" inputmode="decimal" data-fmt="dec" placeholder="0">
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label class="field">
+          <span id="preCountLabel">Installments before possession</span>
+          <input id="preCount" type="text" inputmode="numeric" data-fmt="int" placeholder="">
+        </label>
+        <label class="field">
+          <span id="postCountLabel">Installments after possession</span>
+          <input id="postCount" type="text" inputmode="numeric" data-fmt="int" placeholder="">
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label class="field">
+          <span>Booking month <em>(optional)</em></span>
+          <input id="bookingDate" type="month">
+        </label>
+        <label class="field">
+          <span>First installment falls in month</span>
+          <input id="startOffset" type="text" inputmode="numeric" data-fmt="int" placeholder="1">
+        </label>
+      </div>
+      <p class="hint">Month 1 is the month after booking. With a booking month, the schedule shows real dates.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Balloon payments</h2>
+        <button type="button" class="btn small" id="resetBalloons">Reset to automatic</button>
+      </div>
+      <p class="hint" id="balloonHint"></p>
+      <div id="balloonList" class="balloons"></div>
+    </section>
+
+    <div class="form-actions">
+      <button type="button" class="btn ghost" id="clearAll">Clear this calculation</button>
+    </div>
+  </form>
+
+  <!-- ============ RESULTS ============ -->
+  <aside class="results" id="results" aria-live="polite">
+    <div class="card result-card" id="resultCard">
+      <div class="status" id="status" role="status"></div>
+
+      <div class="total">
+        <div class="k">Total property amount</div>
+        <div class="v" id="rTotal">PKR 0</div>
+      </div>
+
+      <dl class="facts">
+        <div class="fact" id="rMonthlyRow">
+          <dt>Monthly installment</dt>
+          <dd id="rMonthly">PKR 0</dd>
+        </div>
+        <div class="fact" id="rDownRow" hidden>
+          <dt>Down payment</dt>
+          <dd id="rDown">PKR 0</dd>
+        </div>
+        <div class="fact" id="rDiscRow" hidden>
+          <dt>Discount</dt>
+          <dd id="rDisc">PKR 0</dd>
+        </div>
+      </dl>
+
+      <dl class="facts plain">
+        <div class="fact">
+          <dt>Unit size</dt>
+          <dd id="rSize">0 sq ft</dd>
+        </div>
+        <div class="fact">
+          <dt>Unit type</dt>
+          <dd id="rType">Apartment</dd>
+        </div>
+        <div class="fact wide">
+          <dt>Unit location</dt>
+          <dd id="rLoc">Jewel, Tower 1</dd>
+        </div>
+      </dl>
+
+      <div class="problems" id="problems" hidden></div>
+
+      <details class="breakdown" id="breakdown">
+        <summary>Payment breakdown</summary>
+        <div id="breakdownBody"></div>
+      </details>
+
+      <div class="result-actions">
+        <button type="button" class="btn primary" id="copyBtn">Copy summary</button>
+        <button type="button" class="btn" id="shareBtn" hidden>Share</button>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- Sticky summary on phones -->
+<a class="dock" id="dock" href="#results" hidden>
+  <span><small>Total</small><strong id="dockTotal">PKR 0</strong></span>
+  <span><small>Monthly</small><strong id="dockMonthly">PKR 0</strong></span>
+  <span class="dock-state" id="dockState"></span>
+</a>
+
+<footer class="foot">
+  <p id="installHelp" hidden>To install on Android or desktop: open Chrome's menu and choose <strong>Install app</strong> or <strong>Add to Home Screen</strong>. On iPhone: Share, then <strong>Add to Home Screen</strong>.</p>
+  <p>Calculations run on this device only. Nothing is sent to a server and no client details are stored.</p>
+</footer>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<!-- ============ SETTINGS ============ -->
+<dialog id="settings">
+  <form method="dialog" class="settings-form" id="settingsForm">
+    <div class="settings-head">
+      <h2>Settings</h2>
+      <button type="submit" class="btn primary" value="close" id="settingsDone">Done</button>
+    </div>
+
+    <section class="panel flat">
+      <h3>Payment plans</h3>
+      <p class="hint">Months, not percentages. Changes apply immediately and stay on this device.</p>
+      <div id="planEditor"></div>
+    </section>
+
+    <section class="panel flat">
+      <h3>Floor-wise rates</h3>
+      <p class="hint">No rates are built in. Add the official rate for each tower, floor and unit type. When a matching row exists, the rate fills in automatically and can still be changed.</p>
+      <div id="rateEditor"></div>
+      <button type="button" class="btn small" id="addRate">Add rate</button>
+    </section>
+
+    <section class="panel flat">
+      <h3>Reset</h3>
+      <button type="button" class="btn danger small" id="resetSettings">Restore default plans and clear rates</button>
+    </section>
+  </form>
+</dialog>
+
+<script src="config.js"></script>
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
